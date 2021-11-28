@@ -1,0 +1,74 @@
+﻿@page "/UsersList"
+@using Blazor.Data
+@using Blazor.Models
+@inject IUserService UserService
+@inject NavigationManager NavMgr
+@attribute [Authorize(Policy = "admin")]
+
+<h3>UsersList</h3>
+         @if (allUsers == null)
+         {
+             <p>Loading...</p>
+         }
+         else
+         {
+             <table class="table">
+                 <thead>
+                 <tr>
+                     <th>User Id</th>
+                     <th>UserName</th>
+                     <th>Password</th>
+                     <th>Role</th>
+                     <th>Security Level</th>
+                     <th>Remove</th>
+                     <th>Edit</th>
+                 </tr>
+                 </thead>
+                 <tbody>
+
+                 @foreach (var item in allUsers)
+                 {
+                     if (!item.Role.Equals("admin"))
+                     {
+                         <tr>
+                             <td>@item.Id</td>
+                             <td>@item.UserName</td>
+                             <td>@item.Password</td>
+                             <td>@item.Role</td>
+                            
+                             <td>
+                                 <button @onclick="@(() => RemoveUser(item.Id))">
+                                   </button>
+                             </td>
+                             <td>
+                                 <button @onclick="@(() => Edit(item.Id))">
+                                     <i class="oi oi-pencil" style="color:#1b6ec2"></i>
+                                 </button>
+                             </td>
+                         </tr>
+                     }
+                 }
+                 </tbody>
+             </table>
+         }
+   
+@code {
+           private IList<User> allUsers;
+           
+           protected override async Task OnInitializedAsync()
+           {
+               allUsers = await UserService.GetUsersAsync();
+           }
+
+           private async Task RemoveUser(int userId)
+           {
+               User userToRemove = allUsers.First(t => t.Id == userId);
+               await UserService.RemoveUserAsync(userId);
+               allUsers.Remove(userToRemove);
+           }
+    private void Edit(int id)
+    {
+        NavMgr.NavigateTo($"EditUser/{id}");
+    }
+    
+}
